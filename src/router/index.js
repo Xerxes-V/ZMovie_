@@ -83,7 +83,7 @@ export default new Router({
     },
     {
       path:'/dt',
-      component: DrawerT
+      component: cm
     },
     {
       path:'/hotpc',
