@@ -6,6 +6,20 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "579920",
+      "name": "Android更多",
+      "font_class": "androidgengduo",
+      "unicode": "e78d",
+      "unicode_decimal": 59277
+    },
+    {
+      "icon_id": "1727447",
+      "name": "216更多-竖向",
+      "font_class": "gengduo-shuxiang",
+      "unicode": "e8c4",
+      "unicode_decimal": 59588
+    },
+    {
       "icon_id": "1727541",
       "name": "308上一页、后退、返回",
       "font_class": "shangyiyehoutuifanhui",

@@ -27,7 +27,7 @@ el-icon-switch-button"></span>返回</div>
         <span class="svg-container">
          <i class="el-icon-s-custom"></i>
         </span>
-          <el-input v-model="account" placeholder="请输入账号"></el-input>
+          <el-input  maxlength="18" v-model="account" placeholder="请输入账号"></el-input>
 
         </el-form-item>
 
@@ -35,14 +35,14 @@ el-icon-switch-button"></span>返回</div>
         <span class="svg-container">
          <i class="el-icon-lock"></i>
         </span>
-          <el-input placeholder="请输入密码" v-model="pwd" show-password></el-input>
+          <el-input  maxlength="20"  placeholder="请输入密码" v-model="pwd" show-password @keyup.enter.native="handleLogin"></el-input>
         </el-form-item>
 
         <el-form-item prop="code" v-show="isRegister">
         <span class="svg-container">
          <i class="el-icon-lock"></i>
         </span>
-          <el-input placeholder="请输入验证码" v-model="code">
+          <el-input  maxlength="6" placeholder="请输入验证码" v-model="code">
             <template #suffix>
               <el-button type="primary" style="height: 45px;">获取动态码</el-button>
             </template>
@@ -90,29 +90,80 @@ el-icon-switch-button"></span>返回</div>
         loginButton: '登录',
         registerButton: '注册',
 
-        loading:false,
-
+        loading: false,
+        isExist: false,
       }
     },
     methods: {
       handleLogin() {
-        console.log(this.account)
-        if (this.account = '123' && this.pwd == '123') {
-          // alert('success')
-          // this.loading = true;
-        } else {
-          // alert("failure")
+        if(this.pwd == '' || this.account == ''){
+          alert("请输入账号/密码！")
         }
 
-        this.loading = true
-        setTimeout(() => {
-          // this.currentScrollCount += 6
-          this.loading = false;
-        }, 2000) // 关闭窗口
+        const params = {
+          'account': this.account,
+          'password': this.pwd,
+        };
 
-        // this.loading = false;
-        this.account = '';
-        this.pwd = ''
+      if(this.isRegister){
+        this.axios(
+          {
+            method:'post',
+            url:'http://localhost:8081/login/register/',
+            data: JSON.stringify(params),
+            headers: {
+              'Content-Type': 'application/json;charset=UTF-8'
+            }
+          }
+        ).then(
+          res=>{
+            if(res.data.code == 200011){
+              this.$message({
+                showClose: true,
+                message: res.data.message,
+                type: 'success'
+              });
+              this.$router.push({ path: '/main' });
+            }else{
+              this.$message({
+                showClose: true,
+                message: res.data.message,
+                type: 'error'
+              });
+            }
+          }
+        )
+      }else{
+        this.axios(
+          {
+            method:'post',
+            url:'http://localhost:8081/login/doLogin/',
+            data: JSON.stringify(params),
+            headers: {
+              'Content-Type': 'application/json;charset=UTF-8'
+            }
+          }
+        ).then(
+          res=>{
+            if(res.data.code == 200001){
+              this.$message({
+                showClose: true,
+                message: res.data.message,
+                type: 'success'
+              });
+              window.sessionStorage.setItem('isLogin', true);
+              this.$router.push({ path: '/main' });
+            }else{
+              this.$message({
+                showClose: true,
+                message: res.data.message,
+                type: 'error'
+              });
+            }
+          }
+        )
+      }
+
       },
       handleRegister() {
         this.isRegister = !this.isRegister;
@@ -125,6 +176,25 @@ el-icon-switch-button"></span>返回</div>
       register() {
         console.log('123');
         this.$router.push({name: 'register'});
+      },
+
+      //获取 Cookie
+      load(){
+        if (document.cookie.length > 0) {
+          let arr = document.cookie.split('; ');//通过; 将数据转成数组，注意：分号+空格，有空格！！
+          for(let i=0;i<arr.length;i++){
+            let index = arr[i].indexOf("=") //返回第一个“=”所在的位置
+            console.log(arr[i].substring(0, index))
+            if(arr[i].substring(0,index)==="time"){
+              // name为time的cookie存在
+              this.isExist = true;
+              break
+            }
+          }
+        }
+        if (!this.isExist){
+          //具体实现 xxxx
+        }
       }
     }
   }

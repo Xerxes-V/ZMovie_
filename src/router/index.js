@@ -13,6 +13,7 @@ import movie_comment from "../views/MovieComment"
 import myComment from "../views/MyComment"
 import movie_list from "../views/MovieList"
 import me from '../views/Me'
+import searchRes from '../views/SearchRes'
 import error from "../views/error"
 
 import DrawerT from "../views/test/DrawerTest"
@@ -78,9 +79,70 @@ export default new Router({
         {
           path:'/newest',
           component:movie_list,
-        }
+        },
+        {
+          path:'/res',
+          component:searchRes,
+          name:'searchRes',
+        },
+        {
+          path:'/myself',
+          component:myself,
+          children :[
+            {
+              path:"/movieComment",
+              component:movie_comment,
+            },
+            {
+              path:'/myComment',
+              component:myComment,
+            },
+            {
+              path:'/myCollect',
+              component:movie_list
+            },
+            {
+              path:'/myHistory',
+              component:movie_list
+            },
+            {
+              path:'/me',
+              component:me,
+            }
+          ],
+        },
+
       ]
     },
+
+    ,
+    // {
+    //   path:'/myselfs',
+    //   component:myself,
+    //   children :[
+    //     {
+    //       path:"/movieComment",
+    //       component:movie_comment,
+    //     },
+    //     {
+    //       path:'/myComment',
+    //       component:myComment,
+    //     },
+    //     {
+    //       path:'/myCollect',
+    //       component:movie_list
+    //     },
+    //     {
+    //       path:'/myHistory',
+    //       component:movie_list
+    //     },
+    //     {
+    //       path:'/me',
+    //       component:me,
+    //     }
+    //   ],
+    // },
+
     {
       path:'/dt',
       component: DrawerT
@@ -126,32 +188,6 @@ export default new Router({
     {
       path:'/types',
       component:type,
-    },
-    {
-      path:'/myself',
-      component:myself,
-      children :[
-        {
-          path:"/movieComment",
-          component:movie_comment,
-        },
-        {
-          path:'/myComment',
-          component:myComment,
-        },
-        {
-          path:'/myCollect',
-          component:movie_list
-        },
-        {
-          path:'/myHistory',
-          component:movie_list
-        },
-        {
-          path:'/me',
-          component:me,
-        }
-      ],
     },
 
     {
