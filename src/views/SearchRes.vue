@@ -3,28 +3,11 @@
 
     <el-row type="flex" align="middle">
       <el-col :xs="24" :sm="6" :md="4" :lg="3" :xl="14" :offset="curOffset">
-       <div class="goBack">
-         <el-page-header @back="goBack" content="更多"  style="color: yellow">
-         </el-page-header>
-       </div>
-
-        <div class="label" >
-          <template>
-            <el-tabs v-model="activeName" @tab-click="handleClick" >
-              <el-tab-pane label="最热" name="first"> </el-tab-pane>
-              <el-tab-pane label="熱議榜" name="second" style="font-size: 30px" @click="getMostComment"> </el-tab-pane>
-              <el-tab-pane label="个性化推荐" name="third"> </el-tab-pane>
-              <el-tab-pane label="收藏" name="fourth"> </el-tab-pane>
-<!--              <el-tab-pane label="所有电影" name="fifth"> </el-tab-pane>-->
-            </el-tabs>
-          </template>
+        <div class="goBack">
+          <el-page-header @back="goBack" content="更多"  style="color: yellow">
+          </el-page-header>
         </div>
 
-        <!--        <div id="contain" class="list"-->
-        <!--             v-infinite-scroll="load"-->
-        <!--             infinite-scroll-disabled="disabled"-->
-        <!--             infinite-scroll-distance=1>-->
-        <!--        </div>-->
 
         <div class="tenMovie" >
           <div class="singleMovie">
@@ -66,13 +49,11 @@
 </template>
 
 <script>
-  import MovieList from './MovieList';
-
 
   console.log("..")
   export default {
-    name: "MovieViews",
-    components: {MovieList},
+    name: "SearchRes",
+    props:['searchResult'],
     data() {
       return {
         paginationOffset: 0,
@@ -124,26 +105,17 @@
           res => {
             this.movies = res.data.data;
           }
-      )
-      },
-
-      getMostComment(){
-        this.axios.get("http://localhost:8081/movie/mostComment").then(
-          res => {
-            this.movies = res.data.data;
-            console.log(this.movies)
-          }
         )
       },
 
-      getMostCollected(){
-        this.axios.get("http://localhost:8081/movie/mostCollected").then(
-          res => {
-            this.movies = res.data.data;
-            console.log(this.movies)
-          }
-        )
+
+      gettingData() {
+        let movies = this.$route.params.movies;
+        console.log(this.$route.params.movies)
+
+        this.movies = movies;
       },
+
 
     },
 
@@ -158,8 +130,20 @@
     },
 
     created() {
-      this.getHottest();
+        this.gettingData();
     },
+
+    watch:{
+      searchResult:function(newData,oldData){
+        console.log("data:")  //newData就是获取过来的电影数据
+        console.log(newData)
+        this.movies = newData;
+        // //	methods的函数在这里调用可以获取到newOrderData的值
+        // // this.order();
+        // this.movies = newData;
+      },
+    }
+
 
   }
 

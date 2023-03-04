@@ -18,9 +18,19 @@
     </div>
     <hr class="hr-edge-weak" style="margin-top: 30px">
 
-    <div class="talkArea" v-for="(item,index) in comments">
+    <div class="scrollArea" style="overflow:auto">
+     <div
+     v-infinite-scroll="doPostAction"
+     infinite-scroll-immediate="false"
+     infinite-scroll-disabled="end"
+     infinite-scroll-distance="1"
+     >
+       <el-empty description="暂无评论" v-if="comments.length==0" style="background-color: white; height: 800px;"></el-empty>
 
-      <div class="commentBox">
+       <div class="talkArea" v-if="comments.length>0" v-for="(item,index) in comments">
+
+
+      <div class="commentBox" @mouseover="moreOnComment(index)" @mouseleave="moreOnComment1(index)" >
         <el-avatar src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"
                    class="avatar"></el-avatar>
 
@@ -40,24 +50,52 @@
           </div>
 
           <div id="like">
-            <span class="iconfont icon-dianzan" id="iconUse">
-                <span class="numOfLike">
-                  {{item.likes}}
-                </span>
+            <span id="iconUse">
+                <el-link class="iconfont icon-dianzan" :underline="false">
+                </el-link>
+               <span class="numOfLike">
+                    {{item.likes}}
+                  </span>
             </span>
-            <span class="iconfont icon-tubiao_diancai DisiconUse" id="iconUse">
-                 <span class="numOfLike">
-                  {{item.dislikes}}
-                </span>
+
+            <span id="iconUse">
+              <el-link class="iconfont icon-tubiao_diancai DisiconUse" :underline="false" style="margin-bottom: 8px" >
+              </el-link>
+                   <span class="numOfLike" >
+                    {{item.dislikes}}
+                  </span>
             </span>
             <el-link class="el-icon-s-comment" id="iconUse" @click="replyIpt(item,index)"
-                     style="margin-top: 0px"></el-link>
+                     style="margin-top: 0px" :underline="false"></el-link>
+
+
+            <span v-show="false" >{{item.useless}}</span>
           </div>
         </div>
 
+<!--        -->
+        <span v-show="item.showMore" >
+         <el-popconfirm
+           confirm-button-text='好的'
+           cancel-button-text='不用了'
+           placement="left"
+           @confirm="deleteComment(item,index)"
+           icon="el-icon-info"
+           icon-color="red"
+           title=" 删除"
+         >
+
+               <el-button style="width: 176px" @click="deleteComment(item)">删除</el-button>
+               <el-link class="iconfont icon-androidgengduo" id="more" :underline="false"  slot="reference"> </el-link>
+          </el-popconfirm>
+        </span>
+<!--        <el-link class="iconfont icon-androidgengduo" id="more" :underline="false" v-if="item.showMore" @click="clickMore"  > </el-link>-->
+
       </div>
 
-      <div class="replyMsg" v-for="reply in item.sons.slice(0,item.showReplyNums)">
+
+
+      <div class="replyMsg" v-for="(reply,replyIndex) in item.sons.slice(0,item.showReplyNums)" @mouseover="moreOnReply(index,replyIndex)" @mouseleave="moreOnReply1(index,replyIndex)">
         <el-avatar src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"
                    class="replyAvatar"></el-avatar>
         <div id="replyText">
@@ -73,18 +111,39 @@
 
           <div class="replyLike">
             <span class="reply_time"> {{dateSplit(reply.commentTime)}}  </span>
-            <span class="iconfont icon-dianzan" id="iconUse">
+
+            <span id="iconUse">
+              <el-link class="iconfont icon-dianzan" :underline="false"></el-link>
                 <span class="numOfLike">
                   {{reply.likes}}
                 </span>
             </span>
-            <span class="iconfont icon-tubiao_diancai DisiconUse" id="iconUse">
+            <span id="iconUse">
+                <el-link class="iconfont icon-tubiao_diancai DisiconUse" :underline="false" style="margin-bottom: 8px"></el-link>
                  <span class="numOfLike">
                   {{reply.dislikes}}
                 </span>
             </span>
             <el-link class="el-icon-s-comment" id="iconUse " @click="replyReply(item,reply,index)"
-                     style="margin-top: 0px"></el-link>
+                     style="margin-top: 0px"  :underline="false"></el-link>
+
+            <span v-show="reply.showMore" >
+              <el-popconfirm
+                confirm-button-text='好的'
+                cancel-button-text='不用了'
+                placement="left"
+                @confirm="deleteReply(item,index,replyIndex,reply)"
+                icon="el-icon-info"
+                icon-color="red"
+                title=" 删除"
+              >
+
+               <el-button style="width: 176px">删除</el-button>
+                <el-button style="width: 176px">举报</el-button>
+               <el-link class="iconfont icon-androidgengduo" id="more2" :underline="false"  slot="reference"> </el-link>
+            </el-popconfirm>
+           </span>
+<!--            <el-link class="iconfont icon-androidgengduo" id="more2"  :underline="false"  v-if="reply.showMore"></el-link>-->
           </div>
 
         </div>
@@ -113,7 +172,6 @@
         <el-button type="warning" plain class="comment_btn hidden-sm-and-down" @click="reply(item.id,replyTargetId)">发表评论
         </el-button>
 
-
       </div>
 
 
@@ -122,6 +180,11 @@
 
     </div>
 
+     </div>
+    </div>
+
+    <p v-if="loading">加载中...</p>
+    <p v-if="end">没有更多了</p>
 
   </div>
 </template>
@@ -142,74 +205,75 @@
 
         // comments:[],
         //模拟评论信息：
-        comments: [
-          {
-            id: 1,
-            userId: 1,
-            userName: '小白',
-            content: '一级评论',
-            score: 4,
-            sons: [
-              {
-                userId: 2,
-                username: '小百',
-                content: '二级评论'
-              },
-              {
-                userId: 2,
-                username: '小百',
-                content: '二级评论'
-              },
-              {
-                userId: 2,
-                username: '小百',
-                content: '二级评论'
-              }
-            ],
-            showReply: false,
-            showReplyNums: 2,  //最多展示多少回复
-
-          },
-          {
-            id: 2,
-            userId: 3,
-            username: '小黑',
-            content: '一级评论',
-            score: 3,
-            sons: [
-              {
-                userId: 4,
-                username: '小嘿',
-                content: '二级评论'
-              },
-              {
-                userId: 5,
-                username: '小潶',
-                content: '二.1 级评论'
-              },
-              {
-                userId: 5,
-                username: '小潶',
-                content: '二.2 级评论'
-              },
-              {
-                userId: 5,
-                username: '小潶',
-                content: '二.3 级评论'
-              },
-              {
-                userId: 5,
-                username: '小潶',
-                content: '二.4 级评论'
-              }
-
-            ],
-            showReply: false,
-            showReplyNums: 2,  //最多展示多少回复
-
-
-          }
-        ],
+        // comments: [
+        //   {
+        //     id: 1,
+        //     userId: 1,
+        //     userName: '小白',
+        //     content: '一级评论',
+        //     score: 4,
+        //     sons: [
+        //       {
+        //         userId: 2,
+        //         username: '小百',
+        //         content: '二级评论'
+        //       },
+        //       {
+        //         userId: 2,
+        //         username: '小百',
+        //         content: '二级评论'
+        //       },
+        //       {
+        //         userId: 2,
+        //         username: '小百',
+        //         content: '二级评论'
+        //       }
+        //     ],
+        //     showReply: false,
+        //     showReplyNums: 2,  //最多展示多少回复
+        //
+        //   },
+        //   {
+        //     id: 2,
+        //     userId: 3,
+        //     username: '小黑',
+        //     content: '一级评论',
+        //     score: 3,
+        //     sons: [
+        //       {
+        //         userId: 4,
+        //         username: '小嘿',
+        //         content: '二级评论'
+        //       },
+        //       {
+        //         userId: 5,
+        //         username: '小潶',
+        //         content: '二.1 级评论'
+        //       },
+        //       {
+        //         userId: 5,
+        //         username: '小潶',
+        //         content: '二.2 级评论'
+        //       },
+        //       {
+        //         userId: 5,
+        //         username: '小潶',
+        //         content: '二.3 级评论'
+        //       },
+        //       {
+        //         userId: 5,
+        //         username: '小潶',
+        //         content: '二.4 级评论'
+        //       }
+        //
+        //     ],
+        //     showReply: false,
+        //     showReplyNums: 2,  //最多展示多少回复
+        //
+        //
+        //   }
+        // ],
+        comments:[],
 
         //回复的对象：
         replyTarget: "",
@@ -219,6 +283,16 @@
 
         //回复评论的id
         replyTargetId:0,
+
+        //
+        visable:false,
+
+        //当前显示是第几页：
+        curPage:0,
+
+
+        //无限滚动:
+        end:false,
 
       }
     },
@@ -270,6 +344,16 @@
         this.axios.get("http://localhost:8081/comments/init/" + this.movie_id).then(
           res => {
             this.comments = res.data.data;
+
+
+            for(let i = 0;i<this.comments.length;i++){    //添加使用属性
+              this.comments[i].showMore = false;                            //控制 影评以及 回复的更多按钮的显示与隐藏：
+              this.comments[i].other = "1";
+              for(let j = 0;j<this.comments[i].sons.length;j++){
+                this.comments[i].sons[j].showMore = false;
+              }
+            }
+
             console.log(this.comments)
           });
       },
@@ -286,6 +370,15 @@
           'content': this.movieCommentContent
         }
 
+        // let newDate = new Date();
+        // let now = newDate.toISOString(Date.now());
+        // const concatComment = {
+        //   {
+        //       userName:
+        //   }
+        // }
+
+
         this.movieCommentContent = '';
         this.axios(
           {
@@ -300,6 +393,7 @@
           res => {
             //记得按 res 失败或成功调整提示信息以及操作！！！ 3/2
             if (res.data.data) {
+
               this.initData();
             } else {
               alert("发布失败，请重试！")
@@ -338,15 +432,77 @@
             }
           }
         )
+      },
 
+      //控制 影评以及 回复的更多按钮的显示与隐藏：
+      moreOnComment(index){
+        this.comments[index].useless=1;                   //不知道为啥，必须同时改变来自后端的属性才能正常执行，这个属性fw没用的
+        this.$set(this.comments[index],'showMore',true);
+      },
+      moreOnComment1(index){
+        this.comments[index].useless=2;
+        this.$set(this.comments[index],'showMore',false);
 
-      }
+      },
+      moreOnReply(index,replyIndex){
+        this.comments[index].useless=3;
+        this.comments[index].sons[replyIndex].showMore = true;
+      },
+      moreOnReply1(index,replyIndex){
+        this.comments[index].useless=4;
+        this.comments[index].sons[replyIndex].showMore = false;
+      },
+
+      //删除：
+      deleteComment(comment,index){
+        this.axios.delete("http://localhost:8081/comments/deleteComment/"+comment.id).then(
+          res=>{
+            if (res.data.data) {
+              this.comments.splice(index,1);
+            } else {
+              alert("删除失败，请重试！")
+            }
+          }
+        );
+      },
+
+      deleteReply(comment,index,replyIndex,reply){
+        this.axios.delete("http://localhost:8081/comments/deleteReply/"+reply.id).then(
+          res=>{
+            if (res.data.data) {
+              this.comments[index].sons.splice(replyIndex,1);
+            } else {
+              alert("删除失败，请重试！")
+            }
+          }
+        );
+      },
+
+      //滚动更多：
+      showMoreComments(){
+        this.curPage+=1;
+        this.axios.get("http://localhost:8081/comments/showMoreComments/"+this.movie_id+"/"+this.curPage).then(
+          res=>{
+            if(res.data.data.length == 0){
+              this.end = true;
+              return;
+            }
+            this.comments = this.comments.concat(res.data.data)
+          }
+        );
+      },
+
+      postAction(){
+        this.doPostAction()
+      },
 
     },
 
 
+
     created() {
       this.initData();
+      this.doPostAction = _.debounce(this.showMoreComments,500);    //解决一次滑动多次请求的问题。
     }
 
 
@@ -356,11 +512,15 @@
 <style scoped>
 
   .talkArea {
+    background-color: #f3f5c2;
+  }
+  .scrollArea {
+    height: 800px;
   }
 
 
   .commentBox {
-    width: 80%;
+    width: 100%;
     display: flex;
   }
 
@@ -504,6 +664,20 @@
     margin-left: 30px;
   }
 
+  #more {
+    font-size: 20px;
+    margin-left: 360px;
+    margin-top: 70px;
+  }
+
+  #more2 {
+    font-size: 20px;
+    margin-left: 290px;
+  }
+
+  /deep/ .el-popover {
+    min-width: 100px;
+  }
 
   @media screen and (max-width: 1440px) {
     .avatar {

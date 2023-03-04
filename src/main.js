@@ -36,6 +36,7 @@ Vue.component('icon',Icon)
 Vue.use(router);
 Vue.use(ElementUI);
 
+
 new Vue({
   el: '#app',
   render: h => h(App),

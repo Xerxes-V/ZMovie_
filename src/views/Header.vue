@@ -14,7 +14,9 @@
       <el-col :xs="6" :sm="6" :md="4" :lg="3" :xl="4" :offset="0.5" class=" hidden-sm-and-down">
         <el-input
           placeholder="请输入内容"
-          v-model="searchInput">
+          v-model="searchInput"
+          @keyup.enter.native="handleSubmit"
+        >
           <i slot="prefix" class="el-input__icon el-icon-search"></i>
         </el-input>
       </el-col>
@@ -131,11 +133,18 @@
       return {
         searchInput: '',
         drawer: false,
+
+        search:'',
+        data:'dddddddddddd',
       }
     },
     methods: {
       toLog(){
-        this.$router.push({ path: '/log' })
+        if(window.sessionStorage.getItem("isLogin")){
+          this.$router.push({ path: '/me' })
+        }else{
+          this.$router.push({ path: '/log' })
+        }
       },
 
       toMain(){
@@ -147,6 +156,32 @@
 
       toRecommendation(){
         this.$router.push({ path: '/movieviews' })
+      },
+
+
+      handleSubmit(){
+        this.axios(
+          {
+            method:'get',
+            url:"http://localhost:8081/movie/search",
+            params:{
+              msg:this.searchInput,
+            }
+          }
+        ).then(
+          res=>{
+            this.search = res.data.data
+            if(this.$route.path != '/res'){           //判断是否第一次跳转
+              this.$router.push({   //跳转到放置页面：
+                path: '/res' ,
+                name:'searchRes',
+                params: {movies:this.search}
+              })
+            }else{
+              this.$emit('dataFromSon',this.search)//通过emit来触发事件
+            }
+          }
+        )
       },
     },
   }

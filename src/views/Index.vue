@@ -5,9 +5,10 @@
     <el-container style="height: 100%" ref="homePage">
       <el-header style="background-color: #F8F8FF">
         <!--        <router-link to="test/ht"></router-link>-->
-        <Header></Header>
+        <Header @dataFromSon="receiveData"></Header>
         <!--        <router-view> </router-view>-->
       </el-header>
+
 
 <!--      <el-container style="height: 100%">-->
 
@@ -15,7 +16,7 @@
           <el-main class="mainLand">
 <!--            <Main></Main>-->
 
-            <router-view></router-view>
+            <router-view :searchResult="searchResult"></router-view>
           </el-main>
 
         <!--        <el-aside width="300px" >Aside</el-aside>-->
@@ -59,6 +60,8 @@
 
         //是否收藏
         currentStatusOfCollection:false,
+
+        searchResult:0,
       };
     },
 
@@ -71,6 +74,7 @@
         this.clientHeight = `${document.documentElement.clientHeight}`;
       };
 
+      console.log(this.searchResult)
       console.log(window.innerWidth)      //移动端最热电影缩进设置
       this.$nextTick(() => {
         if (window.innerWidth < 900) {
@@ -113,6 +117,10 @@
       switchCollect() {    //收藏
         this.currentStatusOfCollection = !this.currentStatusOfCollection;
       },
+      receiveData(data){
+        this.searchResult=data;
+      },
+
     }
   }
   import 'element-ui/lib/theme-chalk/display.css';
@@ -138,7 +146,7 @@
 
   .el-main {
     /*background-color: #E0EEEE;*/
-    background-color: black;
+    background-color: white;
     color: #333;
     text-align: center;
     /*line-height: 160px;*/
