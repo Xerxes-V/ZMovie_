@@ -107,7 +107,6 @@
 
       let mk_m = echarts.init(document.getElementById('makeUp_Comment'));
       mk_m.setOption(this.mk_comment);
-      //建议加上以下这一行代码，不加的效果图如下（当浏览器窗口缩小的时候）。超过了div的界限（红色边框）
       window.addEventListener('resize',function() {chart.resize()});
     },
 
